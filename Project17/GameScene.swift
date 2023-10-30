@@ -78,7 +78,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        print("touchesBegan")
+    }
+    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        //print("touchesMoved")
         guard let touch = touches.first else { return }
         var location = touch.location(in: self)
         if location.y < 100 {
@@ -87,6 +92,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             location.y = 668
         }
         player.position = location
+        print("touchesMoved x=\(location.x) y=\(location.y)")
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        print("touchesEnded")
+        let explosion = SKEmitterNode(fileNamed: "explosion")!
+        explosion.position = player.position
+        addChild(explosion)
+        player.removeFromParent()
+        isGameOver = true
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
