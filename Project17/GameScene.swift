@@ -15,10 +15,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var possibleEnemies = ["ball","hammer","tv"]
     var gameTimer: Timer?
     var isGameOver = false
+    var timeInterval = 1.0
+    var numEnemies = 0 {
+        didSet {
+            scoreLabel.text = "Score: \(score) Enemies: \(numEnemies)"
+        }
+    }
     
     var score = 0 {
         didSet {
-            scoreLabel.text = "Score: \(score)"
+            scoreLabel.text = "Score: \(score) Enemies: \(numEnemies)"
         }
     }
     
@@ -47,8 +53,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
         
-        gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(createEnemy), userInfo: nil, repeats: true)
-        
+        gameTimer = Timer.scheduledTimer(timeInterval: timeInterval, target: self, selector: #selector(createEnemy), userInfo: nil, repeats: true)
+        print("timeInterval: \(timeInterval)")
     }
     @objc func createEnemy() {
         guard let enemy = possibleEnemies.randomElement() else { return }
@@ -56,6 +62,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let sprite = SKSpriteNode(imageNamed: enemy)
         sprite.position = CGPoint(x: 1200, y: Int.random(in: 50...736))
         addChild(sprite)
+        numEnemies += 1
+        if numEnemies % 20 == 0 {
+            timeInterval -= 0.1
+            if timeInterval < 0.35 {
+                timeInterval = 0.35
+            }
+            gameTimer?.invalidate()
+            gameTimer = Timer.scheduledTimer(timeInterval: timeInterval, target: self, selector: #selector(createEnemy), userInfo: nil, repeats: true)
+            print("timeInterval: \(timeInterval)")
+        }
         
         sprite.physicsBody = SKPhysicsBody(texture: sprite.texture!, size: sprite.size)
         sprite.physicsBody?.categoryBitMask = 1
@@ -63,6 +79,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         sprite.physicsBody?.angularVelocity = 5
         sprite.physicsBody?.linearDamping = 0
         sprite.physicsBody?.angularDamping = 0
+        //sprite.physicsBody?.contactTestBitMask = 1
+        
     }
         
     override func update(_ currentTime: TimeInterval) {
@@ -79,7 +97,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        print("touchesBegan")
+        //print("touchesBegan")
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -92,21 +110,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             location.y = 668
         }
         player.position = location
-        print("touchesMoved x=\(location.x) y=\(location.y)")
+        //print("touchesMoved x=\(location.x) y=\(location.y)")
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        print("touchesEnded")
-        let explosion = SKEmitterNode(fileNamed: "explosion")!
-        explosion.position = player.position
-        addChild(explosion)
-        player.removeFromParent()
-        isGameOver = true
+        if !isGameOver {
+            //print("touchesEnded")
+            let explosion = SKEmitterNode(fileNamed: "explosion")!
+            explosion.position = player.position
+            addChild(explosion)
+            player.removeFromParent()
+            isGameOver = true
+        }
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
+        //let location = CGPoint(x: (contact.bodyA.node?.position.x)! , y: (contact.bodyA.node?.position.y)!)
+        
         let explosion = SKEmitterNode(fileNamed: "explosion")!
         explosion.position = player.position
+        //explosion.position = location
         addChild(explosion)
         player.removeFromParent()
         isGameOver = true
