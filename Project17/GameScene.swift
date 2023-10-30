@@ -68,6 +68,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if timeInterval < 0.35 {
                 timeInterval = 0.35
             }
+            guard gameTimer != nil else { return }
             gameTimer?.invalidate()
             gameTimer = Timer.scheduledTimer(timeInterval: timeInterval, target: self, selector: #selector(createEnemy), userInfo: nil, repeats: true)
             print("timeInterval: \(timeInterval)")
@@ -133,5 +134,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(explosion)
         player.removeFromParent()
         isGameOver = true
+        
+        gameTimer?.invalidate()
+        gameTimer = nil
     }
 }
